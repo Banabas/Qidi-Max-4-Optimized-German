@@ -1,14 +1,14 @@
-# Max 4 THR FIFO fix
+# FIFO-Fix für die Max-4-THR
 
-`max4-thr-lis2dw-fifo-v1` patches the LIS2DW FIFO-empty decision in the Max 4 THR `02.02.01.08` image shipped with QIDI firmware `01.01.07.01`. It applies the behavior of [upstream Klipper fix `6269dda56b`](https://github.com/Klipper3d/klipper/commit/6269dda56bb7c08263153b18715d08e2d964bcab), without the separate FIFO batching change.
+`max4-thr-lis2dw-fifo-v1` korrigiert die Entscheidung „LIS2DW-FIFO leer“ im Max-4-THR-Image `02.02.01.08`, das mit der QIDI-Firmware `01.01.07.01` ausgeliefert wird. Er übernimmt das Verhalten des [Upstream-Klipper-Fixes `6269dda56b`](https://github.com/Klipper3d/klipper/commit/6269dda56bb7c08263153b18715d08e2d964bcab), ohne die separate Änderung an der FIFO-Stapelverarbeitung.
 
-To undo the fix on a printer, see [Restore the stock THR firmware from backup](#restore-the-stock-thr-firmware-from-backup).
+Wie du den Fix auf einem Drucker wieder rückgängig machst, steht unter [Original-THR-Firmware aus der Sicherung wiederherstellen](#original-thr-firmware-aus-der-sicherung-wiederherstellen).
 
-The generator changes five THR image bytes at two instruction sites. Every other component payload, the firmware manifest, internal filenames, and vendor version strings stay unchanged. The ZIP container is repacked. Supported input and output image hashes are recorded in [`max4-thr-lis2dw-fifo-v1.json`](max4-thr-lis2dw-fifo-v1.json).
+Der Generator ändert fünf Bytes des THR-Images an zwei Befehlsstellen. Alle übrigen Komponenten-Nutzdaten, das Firmware-Manifest, interne Dateinamen und die Versionsstrings des Herstellers bleiben unverändert. Der ZIP-Container wird neu gepackt. Die unterstützten Hashes der Eingangs- und Ausgangs-Images sind in [`max4-thr-lis2dw-fifo-v1.json`](max4-thr-lis2dw-fifo-v1.json) hinterlegt.
 
-## Generate the package
+## Das Paket erzeugen
 
-Use Python 3.11 or newer on a development computer. Download the exact [Max 4 release archive](https://github.com/thelegendtubaguy/Qidi-Max4-Defaults/releases/tag/qidi-max4-firmware-01.01.07.01-0cc97445e77295116adaa665ff463e77608d4929520bd7cd46e732fbb0a6ecf2), then run from the repository root:
+Verwende Python 3.11 oder neuer auf einem Entwicklungsrechner. Lade genau dieses [Max-4-Release-Archiv](https://github.com/thelegendtubaguy/Qidi-Max4-Defaults/releases/tag/qidi-max4-firmware-01.01.07.01-0cc97445e77295116adaa665ff463e77608d4929520bd7cd46e732fbb0a6ecf2) herunter und führe dann im Stammverzeichnis des Repositorys aus:
 
 ```bash
 python3 scripts/build_thr_firmware.py \
@@ -16,18 +16,18 @@ python3 scripts/build_thr_firmware.py \
   --output-dir dist/max4-thr-fifo-v1
 ```
 
-The output directory must not exist. The generator rejects unknown, modified, and already-patched archives. It leaves the original archive untouched and creates:
+Das Ausgabeverzeichnis darf noch nicht existieren. Der Generator lehnt unbekannte, veränderte und bereits gepatchte Archive ab. Er lässt das Originalarchiv unangetastet und erzeugt:
 
-- `QD_MAX4_01.01.07.01_20261016_TLTG_THR_FIFO_v1.zip`: the complete vendor package with the patched THR payload.
-- `QD_MAX4_THR_02.02.01.08_20260303_TLTG_FIFO_v1.bin`: the same patched THR image on its own.
-- `max4-thr-lis2dw-fifo-v1.report.json`: input provenance, instruction replacements, and output hashes.
-- A `.sha256` sidecar for each artifact.
+- `QD_MAX4_01.01.07.01_20261016_TLTG_THR_FIFO_v1.zip`: das vollständige Herstellerpaket mit den gepatchten THR-Nutzdaten.
+- `QD_MAX4_THR_02.02.01.08_20260303_TLTG_FIFO_v1.bin`: dasselbe gepatchte THR-Image als Einzeldatei.
+- `max4-thr-lis2dw-fifo-v1.report.json`: Herkunft der Eingabe, ersetzte Befehle und Hashes der Ausgaben.
+- Zu jeder erzeugten Datei eine `.sha256`-Begleitdatei.
 
-The patched THR SHA-256 is `9d2360ba47ebd720dbef07a0a4ebaf26004360bca090997d7b4a118c41460ac9`.
+Der SHA-256 des gepatchten THR-Images lautet `9d2360ba47ebd720dbef07a0a4ebaf26004360bca090997d7b4a118c41460ac9`.
 
-## Verify the package
+## Das Paket prüfen
 
-Install the checking dependencies into a virtual environment:
+Installiere die Abhängigkeiten für die Prüfung in einer virtuellen Umgebung:
 
 ```bash
 python3 -m venv .venv-thr
@@ -37,38 +37,38 @@ python3 -m venv .venv-thr
   --patched-dir dist/max4-thr-fifo-v1
 ```
 
-The checker compares every archive payload and the THR protocol dictionary, verifies artifact checksums and provenance, tests rejection boundaries, and emulates the stock and patched FIFO-query instructions across every FIFO status byte and two reporting-buffer states. SPI transfers, host reporting, and timer registration are stubbed; this does not measure live sampling rate or validate the printer's other firmware paths.
+Der Prüfer vergleicht alle Nutzdaten im Archiv und das THR-Protokollwörterbuch, prüft Prüfsummen und Herkunftsnachweis der erzeugten Dateien, testet die Ablehnungsgrenzen und emuliert die originalen und gepatchten FIFO-Abfragebefehle über jedes FIFO-Statusbyte und zwei Zustände des Berichtspuffers. SPI-Übertragungen, Berichte an den Host und Timer-Registrierung werden nur simuliert; das misst weder die tatsächliche Abtastrate noch validiert es die übrigen Firmware-Pfade des Druckers.
 
-## Before flashing
+## Vor dem Flashen
 
-Generation and checking do not contact or flash a printer. The optimized-macro installer offers a default-No interactive THR firmware question and an explicit `--flash-thr-fifo` option. It checks actual application bytes and skips programming when the fix is already installed. Bootloaders are admitted by exact validated build identity; an unrecognized build is captured without reset or programming, with a shareable `report.json` for a GitHub issue. Its firmware remains unchanged, previous services are restored, and configuration installation is retained. `--yes` alone and automatic updates do not authorize firmware programming.
+Erzeugen und Prüfen kontaktieren keinen Drucker und flashen nichts. Der Installer der optimierten Makros bietet eine interaktive THR-Firmware-Frage mit der Voreinstellung Nein sowie die ausdrückliche Option `--flash-thr-fifo`. Er prüft die tatsächlichen Bytes der Anwendung und überspringt das Programmieren, wenn der Fix bereits installiert ist. Bootloader werden nur anhand ihrer exakten, validierten Build-Kennung zugelassen; ein unbekannter Build wird ohne Reset oder Programmieren erfasst, mit einer teilbaren `report.json` für ein GitHub-Issue. Seine Firmware bleibt unverändert, die vorherigen Dienste werden wiederhergestellt, und die Konfigurationsinstallation bleibt erhalten. `--yes` allein und automatische Updates erlauben kein Programmieren von Firmware.
 
-The package retains QIDI's version strings and does not force a same-version THR reflash. A completed touchscreen update is not proof that the patched THR was flashed. These build checks do not establish installation or physical recovery. See [THR-only operations](FLASHING.md) for the restricted tool, readback verification, and required recovery-entry validation.
+Das Paket behält QIDIs Versionsstrings bei und erzwingt kein erneutes Flashen der THR mit gleicher Version. Ein abgeschlossenes Update über den Touchscreen beweist nicht, dass die gepatchte THR geflasht wurde. Diese Build-Prüfungen belegen weder die Installation noch eine physische Wiederherstellungsmöglichkeit. Das eingeschränkte Werkzeug, die Verifizierung per Rücklesen und die erforderliche Validierung des Wiederherstellungseinstiegs sind unter [Nur-THR-Vorgänge](FLASHING.md) beschrieben.
 
-The ZIP is a **full QIDI update**, including the unchanged SOC and other MCU components. Installing it can replace printer configuration and remove optimized macros, as a stock update does. Keep the original archive for recovery and back up printer configuration before any firmware installation. Use the standalone image only with a verified Max 4 THR flashing and recovery procedure.
+Das ZIP ist ein **vollständiges QIDI-Update**, einschließlich des unveränderten SOC und der übrigen MCU-Komponenten. Seine Installation kann die Druckerkonfiguration ersetzen und die optimierten Makros entfernen, genau wie ein Original-Update. Bewahre das Originalarchiv zur Wiederherstellung auf und sichere die Druckerkonfiguration vor jeder Firmware-Installation. Verwende das einzelne Image nur mit einem verifizierten Flash- und Wiederherstellungsverfahren für die Max-4-THR.
 
-## Restore the stock THR firmware from backup
+## Original-THR-Firmware aus der Sicherung wiederherstellen
 
-Use this procedure to remove the FIFO fix and put QIDI's stock THR application back. Configuration restore (`restore.sh`), uninstall, and reinstalling QIDI's `01.01.07.01` update do not restore THR firmware. Run every command on the printer over SSH as `qidi`.
+Mit diesem Verfahren entfernst du den FIFO-Fix und spielst QIDIs Original-THR-Anwendung wieder auf. Konfigurationswiederherstellung (`restore.sh`), Deinstallation und eine erneute Installation von QIDIs Update `01.01.07.01` stellen die THR-Firmware nicht wieder her. Führe alle Befehle auf dem Drucker per SSH als `qidi` aus.
 
-Restoring erases and reprograms the THR application, the same operation as flashing the fix. Keep printer power on until verification completes. If `~/printer_data/.tltg_thr_firmware_pending.json` exists, an installer firmware operation did not finish; follow the failure procedure in [THR-only operations](FLASHING.md) instead.
+Beim Wiederherstellen wird die THR-Anwendung gelöscht und neu programmiert, derselbe Vorgang wie beim Flashen des Fixes. Lass den Drucker eingeschaltet, bis die Verifizierung abgeschlossen ist. Existiert `~/printer_data/.tltg_thr_firmware_pending.json`, wurde ein Firmware-Vorgang des Installers nicht abgeschlossen; folge dann stattdessen dem Fehlerverfahren unter [Nur-THR-Vorgänge](FLASHING.md).
 
-### 1. Find the stock backup
+### 1. Die Original-Sicherung finden
 
-When the installer flashes a stock board, it first saves the stock application and bootloader in a `before/` folder under `~/printer_data/.tltg_thr_firmware_backups/`. List the backups that contain the stock application:
+Bevor der Installer eine Platine im Originalzustand flasht, speichert er die Original-Anwendung und den Bootloader in einem Ordner `before/` unter `~/printer_data/.tltg_thr_firmware_backups/`. Liste die Sicherungen auf, die die Original-Anwendung enthalten:
 
 ```bash
 grep -l 1d34b4b0142f2a2047f08c2fae59d827bcee0adbd1563b4bd1de311dff8b2d62 \
   ~/printer_data/.tltg_thr_firmware_backups/thr-*/before/snapshot.json
 ```
 
-Set `RECOVERY` to the `thr-…` folder of a listed file, for example:
+Setze `RECOVERY` auf den `thr-…`-Ordner einer aufgelisteten Datei, zum Beispiel:
 
 ```bash
 RECOVERY=~/printer_data/.tltg_thr_firmware_backups/thr-abcd1234
 ```
 
-An installer run that found the fix already installed saves only the patched application, so it is not listed. If nothing is listed, build the stock backup from QIDI's [`QD_MAX4_01.01.07.01_20261016_Release.zip`](https://github.com/thelegendtubaguy/Qidi-Max4-Defaults/releases/download/qidi-max4-firmware-01.01.07.01-0cc97445e77295116adaa665ff463e77608d4929520bd7cd46e732fbb0a6ecf2/QD_MAX4_01.01.07.01_20261016_Release.zip). Copy the archive to the printer, then take the bootloader from any `thr-…` backup folder:
+Ein Installer-Lauf, der den Fix bereits installiert vorfand, sichert nur die gepatchte Anwendung und wird deshalb nicht aufgelistet. Wird nichts aufgelistet, erstelle die Original-Sicherung aus QIDIs [`QD_MAX4_01.01.07.01_20261016_Release.zip`](https://github.com/thelegendtubaguy/Qidi-Max4-Defaults/releases/download/qidi-max4-firmware-01.01.07.01-0cc97445e77295116adaa665ff463e77608d4929520bd7cd46e732fbb0a6ecf2/QD_MAX4_01.01.07.01_20261016_Release.zip). Kopiere das Archiv auf den Drucker und nimm den Bootloader aus einem beliebigen `thr-…`-Sicherungsordner:
 
 ```bash
 RECOVERY=~/thr-stock-recovery
@@ -78,11 +78,11 @@ unzip -p QD_MAX4_01.01.07.01_20261016_Release.zip QD_MAX4_THR_02.02.01.08_202603
 cp ~/printer_data/.tltg_thr_firmware_backups/thr-abcd1234/before/bootloader.bin "$RECOVERY/before/"
 ```
 
-The tool refuses an application or bootloader whose SHA-256 is not pinned, so a wrong or damaged file fails before anything is erased.
+Das Werkzeug lehnt Anwendungen oder Bootloader ab, deren SHA-256 nicht hinterlegt ist; eine falsche oder beschädigte Datei schlägt also fehl, bevor irgendetwas gelöscht wird.
 
-### 2. Stop the printer services
+### 2. Die Druckerdienste stoppen
 
-Confirm no print is running or paused and every heater target, including the chamber, is zero. Note which services are active, then stop them:
+Vergewissere dich, dass kein Druck läuft oder pausiert ist und alle Heizungen, auch die Kammer, auf Zieltemperatur null stehen. Notiere, welche Dienste aktiv sind, und stoppe sie dann:
 
 ```bash
 systemctl is-active klipper.service qidi-client.service tltg-optimized-auto-update.timer
@@ -91,7 +91,7 @@ sudo systemctl stop qidi-client.service
 sudo systemctl stop klipper.service
 ```
 
-### 3. Flash the stock application
+### 3. Die Original-Anwendung flashen
 
 ```bash
 /home/qidi/klippy-env/bin/python ~/tltg-optimized-macros/scripts/flash_thr_firmware.py transfer \
@@ -100,11 +100,11 @@ sudo systemctl stop klipper.service
   --printer-idle-confirmed --confirm-write
 ```
 
-A successful transfer prints `"transfer_acknowledged": true` and `"verified": false`. The restore is not complete until step 4 passes.
+Eine erfolgreiche Übertragung gibt `"transfer_acknowledged": true` und `"verified": false` aus. Die Wiederherstellung ist erst abgeschlossen, wenn Schritt 4 erfolgreich ist.
 
-### 4. Verify the restored firmware
+### 4. Die wiederhergestellte Firmware verifizieren
 
-Wait at least twelve seconds for the THR application to return, then read it back and compare it with the stock image:
+Warte mindestens zwölf Sekunden, bis die THR-Anwendung zurückkehrt, lies sie dann zurück und vergleiche sie mit dem Original-Image:
 
 ```bash
 sleep 12
@@ -115,11 +115,11 @@ sleep 12
   --original-backup-dir "$RECOVERY/before"
 ```
 
-`--output-dir` must not already exist; use a new name when repeating this step. The restore succeeded only when verify prints `"verified": true` and `"application_sha256": "1d34b4b0142f2a2047f08c2fae59d827bcee0adbd1563b4bd1de311dff8b2d62"`. If any step fails or the application does not return, keep the services stopped and follow [THR-only operations](FLASHING.md).
+`--output-dir` darf noch nicht existieren; verwende einen neuen Namen, wenn du diesen Schritt wiederholst. Die Wiederherstellung war nur dann erfolgreich, wenn verify `"verified": true` und `"application_sha256": "1d34b4b0142f2a2047f08c2fae59d827bcee0adbd1563b4bd1de311dff8b2d62"` ausgibt. Schlägt ein Schritt fehl oder kehrt die Anwendung nicht zurück, lass die Dienste gestoppt und folge [Nur-THR-Vorgänge](FLASHING.md).
 
-### 5. Restart the printer services
+### 5. Die Druckerdienste neu starten
 
-Start only the services that were active in step 2:
+Starte nur die Dienste, die in Schritt 2 aktiv waren:
 
 ```bash
 sudo systemctl start klipper.service
@@ -127,4 +127,4 @@ sudo systemctl start qidi-client.service
 sudo systemctl start tltg-optimized-auto-update.timer
 ```
 
-Confirm Klipper is ready before printing. The restore does not change `printer.cfg`. The `printer.cfg` saved in a `thr-…` folder is the copy from before the installer cleared input shaper calibration; do not copy it over the current file, because that discards every configuration change made since. Rerun `M901` if you want input shaper calibration measured with the stock firmware.
+Vergewissere dich vor dem Drucken, dass Klipper bereit ist. Die Wiederherstellung ändert die `printer.cfg` nicht. Die in einem `thr-…`-Ordner gespeicherte `printer.cfg` ist die Kopie von vor dem Entfernen der Input-Shaper-Kalibrierung durch den Installer; kopiere sie nicht über die aktuelle Datei, denn damit verwirfst du jede seitdem vorgenommene Konfigurationsänderung. Führe `M901` erneut aus, wenn du die Input-Shaper-Kalibrierung mit der Original-Firmware messen möchtest.
