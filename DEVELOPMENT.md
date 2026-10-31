@@ -1,106 +1,106 @@
-# Running the dev branch
+# Den dev-Branch verwenden
 
-The `dev` branch is where new changes land before they make it into a release. Every push to `dev` builds a fresh installer and publishes it to the [`prerelease`](https://github.com/thelegendtubaguy/Qidi-Max-4-Optimized/releases/tag/prerelease) release on GitHub, so you can run the newest work on your printer without building anything yourself.
+Im `dev`-Branch landen neue Änderungen, bevor sie in ein Release kommen. Jeder Push auf `dev` baut einen frischen Installer und veröffentlicht ihn im Release [`prerelease`](https://github.com/thelegendtubaguy/Qidi-Max-4-Optimized/releases/tag/prerelease) auf GitHub, sodass du den neuesten Stand auf deinem Drucker nutzen kannst, ohne selbst etwas zu bauen.
 
-The catch is that it hasn't had the same testing as a release. On any given day something might be half-finished or just broken. If you only want a printer that works, use the normal install in the [README](README.md) instead.
+Der Haken: Er wurde nicht so ausgiebig getestet wie ein Release. An jedem beliebigen Tag kann etwas halb fertig oder schlicht kaputt sein. Wenn du einfach nur einen funktionierenden Drucker willst, nutze stattdessen die normale Installation aus der [README](README.md).
 
 > [!CAUTION]
-> I refuse to be responsible for your printer. PLEASE watch prints start ensuring the printer doesn't do something horrible like gouge your bed and be ready to cut power at a moment's notice. That goes double on dev.
+> Ich übernehme keine Verantwortung für deinen Drucker. Beobachte BITTE den Start jedes Drucks, damit der Drucker nichts Schlimmes anstellt, etwa dein Druckbett zerkratzt, und sei jederzeit bereit, den Strom abzuschalten. Für dev gilt das doppelt.
 
-## Installing
+## Installation
 
-1. SSH into your printer: `ssh qidi@<your printer's ip>`
-2. Paste this in and run it. It's one command split across two lines, so copy both:
+1. Verbinde dich per SSH mit deinem Drucker: `ssh qidi@<IP deines Druckers>`
+2. Füge das hier ein und führe es aus. Es ist ein einziger Befehl, der auf zwei Zeilen verteilt ist, kopiere also beide:
 
    ```bash
    TLTG_INSTALLER_ARCHIVE_URL=https://github.com/thelegendtubaguy/Qidi-Max-4-Optimized/releases/download/prerelease/tltg-optimized-macros-dev.tar.gz \
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/thelegendtubaguy/Qidi-Max-4-Optimized/dev/installer/release/install-latest.sh)"
    ```
 
-3. Follow the prompts. They're the same as a normal install with one exception: **answer No to automatic updates.** Auto-updates only follow stable releases, so with them on, your printer will quietly drift back to the stable version.
-4. Update your slicer. Copy the machine G-code from the `dev` branch so it matches the macros you just installed: [`orcaslicer_gcode/`](https://github.com/thelegendtubaguy/Qidi-Max-4-Optimized/tree/dev/orcaslicer_gcode) for OrcaSlicer, or [`qidistudio_gcode/`](https://github.com/thelegendtubaguy/Qidi-Max-4-Optimized/tree/dev/qidistudio_gcode) for QIDI Studio.
+3. Folge den Abfragen. Sie sind dieselben wie bei einer normalen Installation, mit einer Ausnahme: **Beantworte die Frage nach automatischen Updates mit Nein.** Auto-Updates folgen nur stabilen Releases; sind sie eingeschaltet, rutscht dein Drucker unbemerkt auf die stabile Version zurück.
+4. Aktualisiere deinen Slicer. Kopiere den Maschinen-G-Code aus dem `dev`-Branch, damit er zu den gerade installierten Makros passt: [`orcaslicer_gcode/`](https://github.com/thelegendtubaguy/Qidi-Max-4-Optimized/tree/dev/orcaslicer_gcode) für OrcaSlicer oder [`qidistudio_gcode/`](https://github.com/thelegendtubaguy/Qidi-Max-4-Optimized/tree/dev/qidistudio_gcode) für QIDI Studio.
 
-To pick up newer dev changes later, run the same command again. Do the same with the slicer G-code if it has changed.
+Um später neuere dev-Änderungen zu bekommen, führe denselben Befehl erneut aus. Mach dasselbe mit dem Slicer-G-Code, falls er sich geändert hat.
 
-### Already have auto-updates turned on?
+### Auto-Updates sind schon eingeschaltet?
 
-Turn them off before (or right after) installing dev, or the next stable release will replace your dev install:
+Schalte sie vor (oder direkt nach) der dev-Installation aus, sonst ersetzt das nächste stabile Release deine dev-Installation:
 
 ```bash
 ~/tltg-optimized-macros/auto-update.sh --disable-systemd
 ```
 
-### Want a look before anything changes?
+### Erst mal schauen, bevor sich etwas ändert?
 
-Add `-- --dry-run` to the end of the command. The installer will show what it would do without writing anything:
+Hänge `-- --dry-run` an das Ende des Befehls an. Der Installer zeigt dann, was er tun würde, ohne etwas zu schreiben:
 
 ```bash
 TLTG_INSTALLER_ARCHIVE_URL=https://github.com/thelegendtubaguy/Qidi-Max-4-Optimized/releases/download/prerelease/tltg-optimized-macros-dev.tar.gz \
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/thelegendtubaguy/Qidi-Max-4-Optimized/dev/installer/release/install-latest.sh)" -- --dry-run
 ```
 
-## Going back to stable
+## Zurück zur stabilen Version
 
-Run the normal install command from the [README](README.md). It replaces the dev install with the latest release, and you can turn auto-updates back on then if you want them.
+Führe den normalen Installationsbefehl aus der [README](README.md) aus. Er ersetzt die dev-Installation durch das neueste Release, und dabei kannst du die Auto-Updates wieder einschalten, wenn du sie möchtest.
 
-To remove everything instead:
+Um stattdessen alles zu entfernen:
 
 ```bash
 ~/tltg-optimized-macros/install.sh --uninstall --plain
 ```
 
-Backups, restore, and recovery all work the same as on a release. See [If something goes wrong](README.md#if-something-goes-wrong) in the README.
+Sicherungen, Wiederherstellung und Recovery funktionieren genauso wie bei einem Release. Siehe [Wenn etwas schiefgeht](README.md#wenn-etwas-schiefgeht) in der README.
 
-## Telling me how it went
+## Sag mir, wie es gelaufen ist
 
-Good or bad, I want to hear about it. [TESTING.md](TESTING.md) covers what's useful to include. Open an issue here on GitHub or come chat in the [TubaMakes Discord](https://l.tubaguy.com/tmdiscord).
+Ob gut oder schlecht, ich will es hören. In [TESTING.md](TESTING.md) steht, was nützlich ist mitzuschicken. Eröffne ein Issue hier auf GitHub oder komm zum Plaudern in den [TubaMakes-Discord](https://l.tubaguy.com/tmdiscord).
 
-## Working on the code
+## Am Code arbeiten
 
-The rest of this page is for people changing the repo itself.
+Der Rest dieser Seite richtet sich an Leute, die das Repository selbst ändern.
 
-### Test a local build on your printer
+### Einen lokalen Build auf deinem Drucker testen
 
-This builds a dev bundle from your checkout, copies it to the printer, and runs a dry-run there:
+Das baut ein dev-Paket aus deinem Checkout, kopiert es auf den Drucker und führt dort einen Testlauf aus:
 
 ```bash
-scripts/build_copy_dry_run.sh --host <printer-ip>
+scripts/build_copy_dry_run.sh --host <Drucker-IP>
 ```
 
-It connects as `qidi` by default. Use `--user <name>` to change that, `--password '<password>'` if you aren't using SSH keys (this needs `sshpass` installed locally), and `--debug` for extra installer output.
+Standardmäßig verbindet es sich als `qidi`. Mit `--user <Name>` änderst du das, mit `--password '<Passwort>'` gibst du ein Passwort an, falls du keine SSH-Schlüssel nutzt (dafür muss `sshpass` lokal installiert sein), und `--debug` liefert zusätzliche Installer-Ausgaben.
 
-### Checks to run before opening a PR
+### Prüfungen vor dem Öffnen eines PRs
 
-Run the ones that match what you touched:
+Führe die aus, die zu deinen Änderungen passen:
 
 ```bash
-# Installer behavior
+# Installer-Verhalten
 python3 scripts/run_installer_core_tests.py
 
-# installer/package.yaml or installer/supported_upgrade_sources.yaml
+# installer/package.yaml oder installer/supported_upgrade_sources.yaml
 python3 scripts/check_installer_known_versions.py
 
-# Slicer G-code in orcaslicer_gcode/ or qidistudio_gcode/
+# Slicer-G-Code in orcaslicer_gcode/ oder qidistudio_gcode/
 python3 scripts/check_optimized_slicer_macros.py
 
-# Anything in installer/klipper/tltg-optimized-macros/
+# Alles in installer/klipper/tltg-optimized-macros/
 python3 scripts/format_klipper_configs.py
 
-# Bundle or launcher changes: build and smoke-test the dev and release bundles
+# Änderungen an Paket oder Launcher: dev- und Release-Paket bauen und Smoke-Test ausführen
 python3 scripts/build_installer_bundle.py --output-dir dist --channel dev --build-id local --smoke-test
 python3 scripts/build_installer_bundle.py --output-dir dist --channel release --smoke-test
 ```
 
-### THR firmware
+### THR-Firmware
 
-Building and checking the Max 4 LIS2DW FIFO fix is covered in [`firmware/README.md`](firmware/README.md). The firmware is separate from the macro installer bundle, and building or checking it never flashes a printer.
+Das Bauen und Prüfen des LIS2DW-FIFO-Fixes für den Max 4 ist in [`firmware/README.md`](firmware/README.md) beschrieben. Die Firmware ist vom Makro-Installer-Paket getrennt, und Bauen oder Prüfen flasht niemals einen Drucker.
 
-### Pointing the installer at a fake printer
+### Den Installer auf einen simulierten Drucker richten
 
-`installer/runtime/cli.py` reads these environment variables, so tests can run against a fixture directory instead of a live printer:
+`installer/runtime/cli.py` liest diese Umgebungsvariablen, damit Tests gegen ein Fixture-Verzeichnis statt gegen einen echten Drucker laufen können:
 
 - `TLTG_OPTIMIZED_PRINTER_DATA_ROOT`
 - `TLTG_OPTIMIZED_FIRMWARE_MANIFEST`
 - `TLTG_OPTIMIZED_MOONRAKER_URL`
 
-`installer/tests/helpers.py` and `scripts/smoke_test_installer_bundle.py` both use them.
+`installer/tests/helpers.py` und `scripts/smoke_test_installer_bundle.py` nutzen beide diese Variablen.
